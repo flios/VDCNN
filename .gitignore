@@ -2,3 +2,8 @@
 *.pyc
 *.png
 vdcnn
+*.pdf
+*.txt
+logs
+datasets
+checkpoints
