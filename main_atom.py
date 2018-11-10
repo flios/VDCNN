@@ -17,7 +17,6 @@ from evaluators import Evaluator
 # import model.VDCNN
 # from model.VDCNN import VDCNN, vdcnn9, vdcnn17, vdcnn29, vdcnn49
 import model.VDCNN3 as vdcnn_model
-# from model.VDCNN3 import VDCNN, vdcnn9, vdcnn17, vdcnn29, vdcnn49
 
 from model.VDCNN2 import VDCNN2
 
