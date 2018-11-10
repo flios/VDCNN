@@ -14,8 +14,13 @@ from dataloaders import TextDataset, TextDataLoader
 from trainers import Trainer
 from evaluators import Evaluator
 
-import model.VDCNN
-from model.VDCNN import VDCNN, vdcnn9, vdcnn17, vdcnn29, vdcnn49
+# import model.VDCNN
+# from model.VDCNN import VDCNN, vdcnn9, vdcnn17, vdcnn29, vdcnn49
+import model.VDCNN3 as vdcnn_model
+# from model.VDCNN3 import VDCNN, vdcnn9, vdcnn17, vdcnn29, vdcnn49
+
+from model.VDCNN2 import VDCNN2
+
 
 import utils
 
@@ -29,7 +34,7 @@ train_args={
     'dataset':'ag_news',
     'dictionary':'VDCNNDictionary',
     'use_gpu':True,
-    'batch_size':200,
+    'batch_size':100,
     'initial_lr':0.01,
     'optimizer':'Adam',
     'lr_schedule':True,
@@ -41,6 +46,7 @@ train_args={
     'k':10,
     'sort_dataset':True,
     'preprocess_level':'char',
+    'depth':17,
     'optional_shortcut':True
     }
 
@@ -72,8 +78,10 @@ test_dataset = TextDataset(test_data, dictionary, train_args.get('sort_dataset')
 test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=train_args.get('batch_size'))
 
 logger.info("Constructing model...")
-model_name = getattr(model.VDCNN, train_args.get('model_name'))
-model = model_name(n_classes=preprocessor.n_classes, vocabulary_size=dictionary.vocabulary_size,optional_shortcut=train_args.get('optional_shortcut'))
+model_name = getattr(vdcnn_model, train_args.get('model_name'))
+model = model_name(n_classes=preprocessor.n_classes, vocabulary_size=dictionary.vocabulary_size,optional_shortcut=train_args.get('optional_shortcut'), k=train_args.get('k'))
+
+# model = VDCNN2(depth = train_args.get('depth'),n_classes=preprocessor.n_classes, dictionary=dictionary,optional_shortcut=train_args.get('optional_shortcut'),k=train_args.get('k'))
 if train_args.get('use_gpu'):
     model = model.cuda()
 

@@ -19,9 +19,10 @@ class KMaxPool(nn.Module):
 
 def downsampling(pool_type = 'resnet', channel=None):
     if pool_type == 'resnet':
-        pool = nn.Sequential(
-            nn.Conv1d(channel, channel, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm1d(channel))
+        # pool = nn.Sequential(
+        #     nn.Conv1d(channel, channel, kernel_size=3, stride=2, padding=1),
+        #     nn.BatchNorm1d(channel))
+        pool = None
     elif pool_type == 'kmaxpool':
         pool = KMaxPool()
     elif pool_type == 'vgg':
@@ -35,20 +36,21 @@ class BasicBlock(nn.Module):
         super().__init__()
         if kwargs is not None:
             kernel_size = kwargs.pop('kernel_size',3)
-            downsample = kwargs.pop('downsample', None)
+            # downsample = kwargs.pop('downsample', None)
             optional_shortcut = kwargs.pop('optional_shortcut', False)
             shortcut = kwargs.pop('shortcut', None)
+            stride = kwargs.pop('stride', 1)
 
 
         padding = kernel_size//2
 
-        self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, stride=1, padding=padding)
+        self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
         self.bn1 = nn.BatchNorm1d(num_features=out_channels)
         self.relu1 = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size=kernel_size, stride=1, padding=padding)
         self.bn2 = nn.BatchNorm1d(num_features=out_channels)
         self.relu2 = nn.ReLU(inplace=True)
-        self.downsample = downsampling(downsample,out_channels)
+        # self.downsample = downsampling(downsample,out_channels)
         self.shortcut = shortcut
         # None if downsample is None else nn.Sequential(
         #     nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=2),
@@ -68,19 +70,11 @@ class BasicBlock(nn.Module):
 
 
         if self.optional_shortcut:
-            if self.downsample is not None:
-                # print(out.shape,residual.shape)
-                # print(out.shape, residual.shape)
-                out = self.downsample(out)
-                # print(out.shape)
             if self.shortcut is not None:
                 residual = self.shortcut(residual)
             out += residual
-            out = self.relu2(out)
-        else:
-            out = self.relu2(out)
-            if self.downsample is not None:
-                out = self.downsample(out)
+
+        out = self.relu2(out)
 
         return out
 
@@ -133,22 +127,25 @@ class VDCNN(nn.Module):
             optional_shortcut = kwargs.pop('optional_shortcut', False)
 
         layers = []
-        for _ in range(num_block-1):
-            shortcut =None
-            if self.inplanes != channels:
-                shortcut =nn.Sequential(
-                    nn.Conv1d(self.inplanes, channels, kernel_size=1, stride=1),
+        first_stride = 1
+        shortcut = None
+        if(channels != 64):
+            if downsample == 'resnet':
+                first_stride = 2
+            else:
+                pool = downsampling(downsample)
+                layers.append(pool)
+            if optional_shortcut and self.inplanes != channels:
+                shortcut = nn.Sequential(
+                    nn.Conv1d(self.inplanes, channels, kernel_size=1, stride=first_stride),
                     nn.BatchNorm1d(channels))
 
-            layers.append(block(self.inplanes, channels, kernel_size=kernel_size, optional_shortcut=optional_shortcut, shortcut=shortcut))
-            self.inplanes = channels
-
-        shortcut = nn.Sequential(
-            nn.Conv1d(self.inplanes, channels, kernel_size=1, stride=2),
-            nn.BatchNorm1d(channels))
-        layers.append(block(self.inplanes, channels,
-            optional_shortcut=optional_shortcut, downsample=downsample, kernel_size=kernel_size, shortcut = shortcut))
+        layers.append(block(self.inplanes, channels, kernel_size=kernel_size, stride = first_stride, optional_shortcut=optional_shortcut, shortcut=shortcut))
         self.inplanes = channels
+        for _ in range(1, num_block):
+            layers.append(block(self.inplanes, channels, kernel_size=kernel_size, optional_shortcut=optional_shortcut))
+
+
         return nn.Sequential(*layers)
 
     def forward(self, x):

@@ -117,7 +117,7 @@ class Trainer():
             if epoch % self.print_every == 0:
                 current_lr = self.optimizer.param_groups[0]['lr']
                 message = self.base_message.format(epoch=epoch,
-                                                   progress=epoch+1/epochs,
+                                                   progress=(epoch+1)/epochs,
                                                    train_loss=epoch_loss,
                                                    train_metric=epoch_metric,
                                                    val_loss=val_epoch_loss,
