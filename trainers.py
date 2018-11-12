@@ -75,6 +75,13 @@ class Trainer():
             batch_loss.backward()
             self.optimizer.step()
 
+
+            for group in self.optimizer.param_groups:
+                for p in group['params']:
+                    state = self.optimizer.state[p]
+                    if('step' in state and state['step']>=1024):
+                        state['step'] = 1000
+
             self.batch_losses.append(batch_loss.data.item())
             self.batch_metrics.append(batch_metric.data.item())
             # if self.epoch == 0: # for testing

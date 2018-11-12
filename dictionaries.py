@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter
-from gensim.models import KeyedVectors
+#from gensim.models import KeyedVectors
 from os.path import exists
 
 class VDCNNDictionary:
