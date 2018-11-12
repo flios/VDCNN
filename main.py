@@ -28,7 +28,7 @@ torch.manual_seed(0)
 parser = argparse.ArgumentParser(description="Deep NLP Models for Text Classification")
 parser.add_argument('--dataset', type=str, choices=DATASETS, default='ag_news')
 parser.add_argument('--use_gpu', type=bool, default=torch.cuda.is_available())
-parser.add_argument('--batch_size', type=int, default=100)
+parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--initial_lr', type=float, default=0.0001)
 parser.add_argument('--lr_schedule', type=bool, default=True)
 parser.add_argument('--optimizer', type=str, default='Adam')
@@ -38,14 +38,14 @@ parser.set_defaults(preprocess_level='char')
 parser.add_argument('--dictionary', type=str, default='VDCNNDictionary', choices=['CharCNNDictionary', 'VDCNNDictionary', 'AllCharDictionary'])
 parser.add_argument('--min_length', type=int, default=1024)
 parser.add_argument('--max_length', type=int, default=1024)
-parser.add_argument('--epochs', type=int, default=50)
+parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--depth', type=str, choices=['vdcnn9', 'vdcnn17', 'vdcnn29', 'vdcnn49'], default='vdcnn49')
 parser.add_argument('--embed_size', type=int, default=16)
-parser.add_argument('--optional_shortcut', type=bool, default=True)
+parser.add_argument('--optional_shortcut', type=bool, default=False)
 parser.add_argument('--kernel_size', type=int, default=3)
 parser.add_argument('--sort_dataset', type=bool, default=True)
-parser.add_argument('--kmax', type=int, default=10)
-parser.add_argument('--pooling',type=str, choices=['conv','kmaxpool','maxpool'], default='conv')
+parser.add_argument('--kmax', type=int, default=8)
+parser.add_argument('--pooling',type=str, choices=['conv','kmaxpool','maxpool'], default='maxpool')
 parser.set_defaults(model=VDCNN)
 
 args = vars(parser.parse_args(args=[]))
@@ -99,7 +99,7 @@ elif args.get('optimizer') == 'Adadelta':
 else:
     raise NotImplementedError()
 
-lr_plateau = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.7, patience=5, min_lr=0.0001)
+lr_plateau = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.8, patience=5)
 criterion = nn.CrossEntropyLoss
 trainer = Trainer(model, train_dataloader, val_dataloader,
                   criterion=criterion, optimizer=optimizer,
