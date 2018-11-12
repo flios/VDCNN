@@ -3,7 +3,6 @@ import pandas as pd
 import re
 from sklearn.model_selection import train_test_split
 from collections import defaultdict
-from tqdm import tqdm
 
 import utils
 
@@ -11,12 +10,12 @@ BASE_DIR = dirname(abspath(__file__))
 DATA_DIR = join(BASE_DIR, 'datasets')
 
 class CSVPreprocessor:
-    
+
     def __init__(self, dataset):
-        
+
         dataset_dirname = '{dataset}_csv'.format(dataset=dataset)
         dataset_dir = join(DATA_DIR, dataset_dirname)
-        
+
         self.train_csv = join(dataset_dir, 'train.csv')
         self.test_csv = join(dataset_dir, 'test.csv')
         self.classes_txt = join(dataset_dir, 'classes.txt')
@@ -27,16 +26,16 @@ class CSVPreprocessor:
             self.columns = ['class', 'question_title', 'question_content', 'text']
         else:
             self.columns = ['class', 'title', 'text']
-        
+
     def preprocess(self, level='word', val_size=0.1):
-        
+
         assert level in ['word', 'char'], "level should be either 'word' or 'char'"
-        
+
         train_df = (pd.read_csv(self.train_csv, names=self.columns)
                      .assign(label=lambda x: x['class'].astype(int)-1)
                     )
         self.n_classes = len(train_df['label'].unique())
-        
+
         train_data = self._dataframe_to_data(train_df, level)
         temp = train_data
         train_data, val_data = train_test_split(train_data, test_size=val_size)
@@ -45,9 +44,9 @@ class CSVPreprocessor:
                      .assign(label=lambda x: x['class'].astype(int)-1)
                     )
         test_data = self._dataframe_to_data(test_df, level)
-            
+
         return train_data, val_data, test_data
-    
+
     @staticmethod
     def _dataframe_to_data(dataframe, level):
         dataframe = dataframe.dropna(subset=['text', 'label'])
@@ -59,17 +58,17 @@ class CSVPreprocessor:
         return data
 
 class MRPreprocessor:
-    
+
     def __init__(self, dataset):
-        
+
         dataset_dirname = 'rt-polaritydata'
         dataset_dir = join(DATA_DIR, dataset, dataset_dirname)
-        
+
         self.neg_filepath = join(dataset_dir, 'rt-polarity.neg')
         self.pos_filepath = join(dataset_dir, 'rt-polarity.pos')
-        
+
     def preprocess(self, level, val_size=0.1):
-        
+
         sentences = []
         with open(self.pos_filepath, 'r', errors='ignore') as pos:
             for line in pos:
@@ -81,7 +80,7 @@ class MRPreprocessor:
                 cleaned_str = self.clean_str(line)
                 words = cleaned_str.split()
                 sentences.append((words, 0))
-        
+
         train_data, test_data = train_test_split(sentences, test_size=0.1)
         train_data, val_data = train_test_split(train_data, test_size=0.2)
         self.n_classes = 2
@@ -110,25 +109,25 @@ class MRPreprocessor:
         return string.strip()
 
 class SSTPreprocessor:
-    
+
     def __init__(self, dataset, binary=False):
-        
+
         self.binary = binary
         dataset_dirname = 'trees'
         dataset_dir = join(DATA_DIR, dataset.upper(), dataset_dirname)
-        
+
         self.train_file = join(dataset_dir, 'train.txt')
         self.val_file = join(dataset_dir, 'dev.txt')
         self.test_file = join(dataset_dir, 'test.txt')
         self.filelist = [self.train_file, self.val_file, self.test_file]
-        
+
         if self.binary:
             self.n_classes = 2
         else:
             self.n_classes = 5
-            
+
     def preprocess(self, level='word'):
-        
+
         tree_dict = defaultdict(list)
         for datafile in self.filelist:
             with open(datafile) as f:
@@ -136,7 +135,7 @@ class SSTPreprocessor:
                     tree = utils.create_tree_from_string(line)
                     for label, line in tree.to_labeled_lines():
                         tree_dict[datafile].append((label, line))
-        
+
         data_dict = defaultdict(list)
         for datafile in self.filelist:
             for label, line in tree_dict[datafile]:
@@ -148,14 +147,14 @@ class SSTPreprocessor:
                     text = line.split()
                 else:
                     text = line
-                
+
                 data = (text, label)
                 data_dict[datafile].append(data)
-            
+
         train_data = data_dict[self.train_file]
         val_data = data_dict[self.val_file]
         test_data = data_dict[self.test_file]
-        
+
         return train_data, val_data, test_data
 
     @staticmethod
@@ -166,7 +165,7 @@ class SSTPreprocessor:
             return 0
         else: # label == 2
             return None
-        
+
 DATASET_TO_PREPROCESSOR = {'ag_news': CSVPreprocessor,
             'amazon_review_full': CSVPreprocessor,
             'amazon_review_polarity': CSVPreprocessor,

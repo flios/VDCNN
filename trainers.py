@@ -1,7 +1,16 @@
 from os.path import dirname, abspath, join, exists
 import os
 from datetime import datetime
-from tqdm import tqdm
+
+try:
+    from tqdm import tqdm
+except ImportError:
+    def xxrange(x):
+        for xi in x:
+            yield xi
+else:
+    xxrange = tqdm
+
 import torch
 from torch.autograd import Variable
 import numpy as np
@@ -14,7 +23,7 @@ class Trainer():
         self.model = model
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
-        self.criterion = criterion(size_average=False)
+        self.criterion = criterion()
         self.optimizer = optimizer
         self.lr_schedule = lr_schedule
         self.lr_scheduler = lr_scheduler
@@ -28,7 +37,12 @@ class Trainer():
         self.val_epoch_losses = []
         self.val_epoch_metrics = []
         self.use_gpu = use_gpu
-        self.logger = logger
+        # self.logger = logger
+        if logger is not None:
+            self.output = logger.info
+        else:
+            self.output = print
+
 
         self.base_message = ("Epoch: {epoch:<3d} "
                              "Progress: {progress:<.1%} ({elapsed}) "
@@ -46,7 +60,7 @@ class Trainer():
 
         self.batch_losses = []
         self.batch_metrics = []
-        for inputs, targets in tqdm(self.train_dataloader):
+        for inputs, targets in xxrange(self.train_dataloader):
 
             if self.use_gpu:
                 self.inputs, self.targets = Variable(inputs.cuda()), Variable(targets.cuda())
@@ -66,6 +80,8 @@ class Trainer():
             # print(self.batch_losses, self.batch_metrics)
             # if self.epoch == 0: # for testing
             #     break
+            # self.output(self.outputs)
+            # self.output(self.targets)
 
         # validation
         self.model.eval()
@@ -125,10 +141,10 @@ class Trainer():
                                                    learning_rate=current_lr,
                                                    elapsed=self.elapsed_time()
                                                   )
-                self.logger.info(message)
+                self.output(message)
 
             if epoch % self.save_every == 0:
-                self.logger.info("Saving the model...")
+                self.output("Saving the model...")
                 self.save_model()
 
     def accuracy(self, outputs, labels):
@@ -149,7 +165,7 @@ class Trainer():
         if not exists(checkpoint_dir):
             os.mkdir(checkpoint_dir)
         model_name = self.model.__class__.__name__
-        base_filename = '{model_name}-{start_time}-{epoch}.pth'
+        base_filename = '{model_name}-{start_time}-{epoch}.ckpt'
         checkpoint_filename=base_filename.format(model_name=model_name,
                                                  start_time=self.start_time.strftime('%Y-%m-%d %H-%M-%S'),
                                                  epoch=self.epoch)
