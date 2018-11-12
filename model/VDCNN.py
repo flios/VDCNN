@@ -163,24 +163,28 @@ class VDCNN(nn.Module):
 def vdcnn9(n_classes, vocabulary_size, **kwargs):
     model = VDCNN(BasicBlock, [1, 1, 1, 1],
                   n_classes, vocabulary_size, **kwargs)
+    model.__name__ = 'VDCNN_vdcnn9'
     return model
 
 
 def vdcnn17(n_classes, vocabulary_size, **kwargs):
     model = VDCNN(BasicBlock, [2, 2, 2, 2],
                   n_classes, vocabulary_size, **kwargs)
+    model.__name__ = 'VDCNN_vdcnn17'
     return model
 
 
 def vdcnn29(n_classes, vocabulary_size, **kwargs):
     model = VDCNN(BasicBlock, [5, 5, 2, 2],
                   n_classes, vocabulary_size, **kwargs)
+    model.__name__ = 'VDCNN_vdcnn29'
     return model
 
 
 def vdcnn49(n_classes, vocabulary_size, **kwargs):
     model = VDCNN(BasicBlock, [8, 8, 5, 3],
                   n_classes, vocabulary_size, **kwargs)
+    model.__name__ = 'VDCNN_vdcnn49'
     return model
 
 

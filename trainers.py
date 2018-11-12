@@ -161,7 +161,7 @@ class Trainer():
         checkpoint_dir = join(base_dir, 'checkpoints')
         if not exists(checkpoint_dir):
             os.mkdir(checkpoint_dir)
-        model_name = self.model.__class__.__name__
+        model_name = self.model.__name__
         base_filename = '{model_name}-{start_time}-{epoch}.ckpt'
         checkpoint_filename=base_filename.format(model_name=model_name,
                                                  start_time=self.start_time.strftime('%Y-%m-%d %H-%M-%S'),
