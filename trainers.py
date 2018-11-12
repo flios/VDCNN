@@ -77,11 +77,8 @@ class Trainer():
 
             self.batch_losses.append(batch_loss.data.item())
             self.batch_metrics.append(batch_metric.data.item())
-            # print(self.batch_losses, self.batch_metrics)
             # if self.epoch == 0: # for testing
             #     break
-            # self.output(self.outputs)
-            # self.output(self.targets)
 
         # validation
         self.model.eval()
