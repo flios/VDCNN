@@ -148,7 +148,6 @@ class Trainer():
                 self.output(message)
 
             if epoch % self.save_every == 0:
-                self.output("Saving the model...")
                 self.save_model()
 
     def accuracy(self, outputs, labels):
@@ -174,6 +173,7 @@ class Trainer():
                                                  start_time=self.start_time.strftime('%Y-%m-%d %H-%M-%S'),
                                                  epoch=self.epoch)
         checkpoint_filepath = join(checkpoint_dir, checkpoint_filename)
+        self.output("Saving the model... {model_name}".format(model_name=checkpoint_filename))        
         torch.save(self.model.state_dict(), checkpoint_filepath)
         self.last_checkpoint_filepath = checkpoint_filepath
         if max(self.val_epoch_metrics) == self.val_epoch_metrics[-1]: # if last run is the best
