@@ -19,6 +19,11 @@ import model.VDCNN as vdcnn_model
 from model.VDCNN import VDCNN
 
 import utils
+import sys
+
+def is_interactive():
+    import __main__ as main
+    return not hasattr(main, '__file__')
 
 # Random seed
 np.random.seed(0)
@@ -26,9 +31,9 @@ torch.manual_seed(0)
 
 # Arguments parser
 parser = argparse.ArgumentParser(description="Deep NLP Models for Text Classification")
-parser.add_argument('--dataset', type=str, choices=DATASETS, default='ag_news')
+parser.add_argument('--dataset', type=str, choices=DATASETS, default='dbpedia')
 parser.add_argument('--use_gpu', type=bool, default=torch.cuda.is_available())
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument('--initial_lr', type=float, default=0.0001)
 parser.add_argument('--lr_schedule', type=bool, default=True)
 parser.add_argument('--optimizer', type=str, default='Adam')
@@ -43,12 +48,17 @@ parser.add_argument('--depth', type=str, choices=['vdcnn9', 'vdcnn17', 'vdcnn29'
 parser.add_argument('--embed_size', type=int, default=16)
 parser.add_argument('--optional_shortcut', type=bool, default=False)
 parser.add_argument('--kernel_size', type=int, default=3)
-parser.add_argument('--sort_dataset', type=bool, default=True)
+parser.add_argument('--sort_dataset', type=bool, default=False)
 parser.add_argument('--kmax', type=int, default=8)
 parser.add_argument('--pooling',type=str, choices=['conv','kmaxpool','maxpool'], default='maxpool')
 parser.set_defaults(model=VDCNN)
 
-args = vars(parser.parse_args(args=[]))
+if is_interactive():
+    params = []
+else:
+    params = sys.argv[1:]
+
+args = vars(parser.parse_args(params))
 
 # Logging
 model_name = args.get('model').__name__+'_'+args.get('depth')
@@ -68,11 +78,11 @@ dictionary.build_dictionary(train_data)
 
 logger.info("Making dataset & dataloader...")
 train_dataset = TextDataset(train_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-train_dataloader = TextDataLoader(dataset=train_dataset, dictionary=dictionary, batch_size=args.get('batch_size'))
+train_dataloader = TextDataLoader(dataset=train_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
 val_dataset = TextDataset(val_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-val_dataloader = TextDataLoader(dataset=val_dataset, dictionary=dictionary, batch_size=args.get('batch_size'))
+val_dataloader = TextDataLoader(dataset=val_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
 test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'))
+test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
 
 logger.info("Constructing model...")
 model_name = getattr(vdcnn_model, args.get('depth'))
@@ -106,9 +116,5 @@ trainer = Trainer(model, train_dataloader, val_dataloader,
                   lr_schedule=args.get('lr_schedule'), lr_scheduler=lr_plateau,
                   use_gpu=args.get('use_gpu'), logger=logger)
 trainer.run(epochs=args.get('epochs'))
-
 logger.info("Evaluating...")
 logger.info('Best Model: {}'.format(trainer.best_checkpoint_filepath))
-model.load_state_dict(torch.load(trainer.best_checkpoint_filepath)) # load best model
-evaluator = Evaluator(model, test_dataloader, use_gpu=args.get('use_gpu'), logger=logger)
-evaluator.evaluate()
