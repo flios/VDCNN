@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=16:xk
+#PBS -N YA-V-29
+#PBS -l walltime=48:00:00
+#PBS -e $PBS_JOBNAME.$PBS_JOBID.err
+#PBS -o $PBS_JOBNAME.$PBS_JOBID.out
+#PBS -m bea
+#PBS -M zehuali2@illinois.edu
+#PBS -q low
+cd ~/scratch/project/Proj/
+. /opt/modules/default/init/bash
+module load bwpy/2.0.0-pre2
+module load cudatoolkit
+aprun -n 1 -N 1 python main.py --dataset yahoo_answers --epochs 50 --initial_lr 0.0001 --depth vdcnn29 --optional_shortcut False --pooling maxpool
