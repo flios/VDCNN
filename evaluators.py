@@ -20,6 +20,7 @@ class Evaluator():
         self.base_message = "Test Accuracy: {test_metric:<.1%}"
 
     def evaluate(self):
+        self.output('Evaluating...')
         self.model.eval()
 
         # validation
