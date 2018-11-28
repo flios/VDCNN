@@ -37,9 +37,9 @@ class CSVPreprocessor:
         self.n_classes = len(train_df['label'].unique())
 
         train_data = self._dataframe_to_data(train_df, level)
-        temp = train_data
+        # temp = train_data
         train_data, val_data = train_test_split(train_data, test_size=val_size)
-        train_data = temp
+        # train_data = temp
         test_df = (pd.read_csv(self.test_csv, names=self.columns)
                      .assign(label=lambda x: x['class'].astype(int)-1)
                     )
