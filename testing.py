@@ -1,5 +1,5 @@
 import argparse
-from os.path import dirname, abspath, join, exists
+from os.path import dirname, abspath, join, exists, isdir,isfile
 import os
 
 import torch
@@ -25,13 +25,12 @@ def is_interactive():
     import __main__ as main
     return not hasattr(main, '__file__')
 
-
 # Arguments parser
 parser = argparse.ArgumentParser(description="Deep NLP Models for Text Classification")
-parser.add_argument('--dataset', type=str, choices=DATASETS, default='yelp_review_full')
+parser.add_argument('--dataset', type=str, choices=DATASETS, default='yelp_review_polarity')
 parser.add_argument('--use_gpu', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--batch_size', type=int, default=50)
-parser.add_argument('--load_model', type=str, default ='yelp_review_full/VDCNN_vdcnn49-2018-11-15 14-47-33-48.ckpt')
+parser.add_argument('--load_model', type=str, default ='yelp_review_polarity')
 
 parser.set_defaults(preprocess_level='char')
 parser.add_argument('--dictionary', type=str, default='VDCNNDictionary', choices=['CharCNNDictionary', 'VDCNNDictionary', 'AllCharDictionary'])
@@ -80,12 +79,16 @@ base_dir = dirname(abspath(trainers.__file__))
 checkpoint_dir = join(base_dir, 'checkpoints')
 model_load_name = args.get('load_model')
 checkpoint_filepath = join(checkpoint_dir, model_load_name)
-model.load_state_dict(torch.load(checkpoint_filepath))
-logger.info(checkpoint_filepath)
+model_name_list = []
+if isdir(checkpoint_filepath):
+    model_name_list = [join(checkpoint_filepath, f) for f in os.listdir(checkpoint_filepath) if f.endswith(".ckpt")]
+else:
+    model_name_list = [checkpoint_filepath]
 
-if args.get('use_gpu'):
-    model = model.cuda()
-
-# load best model
-evaluator = Evaluator(model, test_dataloader, use_gpu=args.get('use_gpu'), logger=logger)
-evaluator.evaluate()
+for checkpoint in model_name_list:
+    logger.info(checkpoint)
+    model.load_state_dict(torch.load(checkpoint))
+    if args.get('use_gpu'):
+        model = model.cuda()
+    evaluator = Evaluator(model, test_dataloader, use_gpu=args.get('use_gpu'), logger=logger)
+    evaluator.evaluate()
