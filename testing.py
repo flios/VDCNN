@@ -27,10 +27,10 @@ def is_interactive():
 
 # Arguments parser
 parser = argparse.ArgumentParser(description="Deep NLP Models for Text Classification")
-parser.add_argument('--dataset', type=str, choices=DATASETS, default='yelp_review_polarity')
+parser.add_argument('--dataset', type=str, choices=DATASETS, default='yahoo_answers')
 parser.add_argument('--use_gpu', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--batch_size', type=int, default=50)
-parser.add_argument('--load_model', type=str, default ='yelp_review_polarity')
+parser.add_argument('--load_model', type=str, default ='yahoo_answers')
 
 parser.set_defaults(preprocess_level='char')
 parser.add_argument('--dictionary', type=str, default='VDCNNDictionary', choices=['CharCNNDictionary', 'VDCNNDictionary', 'AllCharDictionary'])
@@ -67,10 +67,6 @@ Dictionary = getattr(dictionaries, args.get('dictionary'))
 dictionary = Dictionary(args)
 dictionary.build_dictionary(train_data)
 
-logger.info("Making dataset & dataloader...")
-test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
-
 logger.info("Constructing model...")
 model_name = getattr(vdcnn_model, args.get('depth'))
 model = model_name(n_classes=preprocessor.n_classes, vocabulary_size=dictionary.vocabulary_size, **args)
@@ -84,6 +80,11 @@ if isdir(checkpoint_filepath):
     model_name_list = [join(checkpoint_filepath, f) for f in os.listdir(checkpoint_filepath) if f.endswith(".ckpt")]
 else:
     model_name_list = [checkpoint_filepath]
+
+logger.info("Making dataset & dataloader...")
+test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
+test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
+
 
 for checkpoint in model_name_list:
     logger.info(checkpoint)

@@ -77,14 +77,6 @@ Dictionary = getattr(dictionaries, args.get('dictionary'))
 dictionary = Dictionary(args)
 dictionary.build_dictionary(train_data)
 
-logger.info("Making dataset & dataloader...")
-train_dataset = TextDataset(train_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-train_dataloader = TextDataLoader(dataset=train_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
-val_dataset = TextDataset(val_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-val_dataloader = TextDataLoader(dataset=val_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
-test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
-
 logger.info("Constructing model...")
 model_name = getattr(vdcnn_model, args.get('depth'))
 model = model_name(n_classes=preprocessor.n_classes, vocabulary_size=dictionary.vocabulary_size, **args)
@@ -101,6 +93,15 @@ if args.get('load_model') is not None:
 
 if args.get('use_gpu'):
     model = model.cuda()
+
+logger.info("Making dataset & dataloader...")
+train_dataset = TextDataset(train_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
+train_dataloader = TextDataLoader(dataset=train_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
+val_dataset = TextDataset(val_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
+val_dataloader = TextDataLoader(dataset=val_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
+test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
+test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
+
 logger.info("Training...")
 # trainable_params = [p for p in model.parameters() if p.requires_grad]
 if args.get('optimizer') == 'Adam':
