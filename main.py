@@ -52,6 +52,7 @@ parser.add_argument('--kernel_size', type=int, default=3)
 parser.add_argument('--sort_dataset', action='store_true')
 parser.add_argument('--kmax', type=int, default=8)
 parser.add_argument('--pooling',type=str, choices=['conv','kmaxpool','maxpool'], default='maxpool')
+parser.add_argument('--num_workers', type=int, default=0)
 parser.set_defaults(model=VDCNN)
 
 if is_interactive():
@@ -96,11 +97,11 @@ if args.get('use_gpu'):
 
 logger.info("Making dataset & dataloader...")
 train_dataset = TextDataset(train_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-train_dataloader = TextDataLoader(dataset=train_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
+train_dataloader = TextDataLoader(dataset=train_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'), num_workers = args.get('num_workers'))
 val_dataset = TextDataset(val_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-val_dataloader = TextDataLoader(dataset=val_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
-test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
+val_dataloader = TextDataLoader(dataset=val_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'), num_workers = args.get('num_workers'))
+# test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
+# test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
 
 logger.info("Training...")
 # trainable_params = [p for p in model.parameters() if p.requires_grad]

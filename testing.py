@@ -28,7 +28,8 @@ def is_interactive():
 # Arguments parser
 parser = argparse.ArgumentParser(description="Deep NLP Models for Text Classification")
 parser.add_argument('--dataset', type=str, choices=DATASETS, default='yahoo_answers')
-parser.add_argument('--use_gpu', type=bool, default=torch.cuda.is_available())
+parser.add_argument('--use_gpu', dest='use_gpu', action='store_true')
+parser.set_defaults(use_gpu=torch.cuda.is_available())
 parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument('--load_model', type=str, default ='yahoo_answers')
 
@@ -38,11 +39,12 @@ parser.add_argument('--min_length', type=int, default=1024)
 parser.add_argument('--max_length', type=int, default=1024)
 parser.add_argument('--depth', type=str, choices=['vdcnn9', 'vdcnn17', 'vdcnn29', 'vdcnn49'], default='vdcnn49')
 parser.add_argument('--embed_size', type=int, default=16)
-parser.add_argument('--optional_shortcut', type=bool, default=False)
+parser.add_argument('--optional_shortcut', action='store_true')
 parser.add_argument('--kernel_size', type=int, default=3)
 parser.add_argument('--sort_dataset', type=bool, default=False)
 parser.add_argument('--kmax', type=int, default=8)
 parser.add_argument('--pooling',type=str, choices=['conv','kmaxpool','maxpool'], default='maxpool')
+parser.add_argument('--num_workers', type=int, default=0)
 parser.set_defaults(model=VDCNN)
 
 if is_interactive():
@@ -83,7 +85,7 @@ else:
 
 logger.info("Making dataset & dataloader...")
 test_dataset = TextDataset(test_data, dictionary, args.get('sort_dataset'), args.get('min_length'), args.get('max_length'))
-test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'))
+test_dataloader = TextDataLoader(dataset=test_dataset, dictionary=dictionary, batch_size=args.get('batch_size'), shuffle = not args.get('sort_dataset'), num_workers = args.get('num_workers'))
 
 
 for checkpoint in model_name_list:
@@ -91,5 +93,7 @@ for checkpoint in model_name_list:
     model.load_state_dict(torch.load(checkpoint))
     if args.get('use_gpu'):
         model = model.cuda()
-    evaluator = Evaluator(model, test_dataloader, use_gpu=args.get('use_gpu'), logger=logger)
+    criterion = nn.CrossEntropyLoss
+    evaluator = Evaluator(model, test_dataloader, criterion=criterion,
+                            use_gpu=args.get('use_gpu'), logger=logger)
     evaluator.evaluate()
