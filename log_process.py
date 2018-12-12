@@ -12,7 +12,7 @@ def is_interactive():
 
 parser = argparse.ArgumentParser(description="Log Process")
 parser.add_argument('--log_type', type=str, default='train', choices = ['test', 'train'])
-parser.add_argument('--log_file', type=str, default='checkpoints\shortcut_yahoo_answers\VDCNN_vdcnn49-2018-12-04 14-48-14.log')
+parser.add_argument('--log_file', type=str, default='checkpoints\shortcut_yelp_review_polarity\VDCNN_vdcnn49-2018-12-07 23-48-27.log')
 
 if is_interactive():
     params = []
@@ -63,7 +63,7 @@ elif args.get('log_type') == 'train':
                 train_info.extend(list(map(float, [re.findall('\d+\.\d+', acc)[0] for acc in result_acc])))
                 all_info.append(np.array(train_info))
                 train_info = []
-    info_df = pd.DataFrame(data=all_info,columns=['epoch','train_loss','train_acc', 'val_loss', 'val_acc'])
+    info_df = pd.DataFrame(data=all_info,columns=['epoch','train_loss', 'val_loss', 'train_acc', 'val_acc'])
     info_df = info_df.set_index('epoch')
     info_df = info_df.sort_index()
     save_name = args.get('log_file').split('.')[0]
