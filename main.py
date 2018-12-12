@@ -112,7 +112,7 @@ elif args.get('optimizer') == 'Adadelta':
 else:
     raise NotImplementedError()
 
-lr_plateau = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.8, patience=5)
+lr_plateau = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=5)
 criterion = nn.CrossEntropyLoss
 trainer = Trainer(model, train_dataloader, val_dataloader,
                   criterion=criterion, optimizer=optimizer,
