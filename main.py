@@ -30,7 +30,7 @@ np.random.seed(0)
 torch.manual_seed(0)
 
 # Arguments parser
-parser = argparse.ArgumentParser(description="Deep NLP Models for Text Classification")
+parser = argparse.ArgumentParser(description="Very Deep Convolutional Networks for Text Classification")
 parser.add_argument('--dataset', type=str, choices=DATASETS, default='dbpedia')
 parser.add_argument('--use_gpu', dest='use_gpu', action='store_true')
 parser.set_defaults(use_gpu=torch.cuda.is_available())

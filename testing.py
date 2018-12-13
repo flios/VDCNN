@@ -26,7 +26,7 @@ def is_interactive():
     return not hasattr(main, '__file__')
 
 # Arguments parser
-parser = argparse.ArgumentParser(description="Deep NLP Models for Text Classification")
+parser = argparse.ArgumentParser(description="Very Deep Convolutional Networks for Text Classification")
 parser.add_argument('--dataset', type=str, choices=DATASETS, default='yahoo_answers')
 parser.add_argument('--use_gpu', dest='use_gpu', action='store_true')
 parser.set_defaults(use_gpu=torch.cuda.is_available())
